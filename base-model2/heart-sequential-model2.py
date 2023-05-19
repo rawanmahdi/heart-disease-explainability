@@ -20,73 +20,6 @@ RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 neg, pos = np.bincount(dataframe['target'])
 
-#%%
-# function to build data pipeline to extract, shuffle and batch load the data
-# def resampled_df(df):
-
-    # pos_df = df[df['target'] == 1]
-    # neg_df = df[df['target'] == 0]
-    # # pos_labels = pos_df.pop('target')
-    # # pos_features = pos_df
-    # # neg_labels = neg_df.pop('target')
-    # # neg_features = neg_df
-    # print(pos_df.shape)
-    # print(neg_df.shape)
-    # rng = np.random.default_rng()
-    # resampled_neg_df = rng.choice(neg_df, len(pos_df), replace=False)
-    # # print(neg_df[:, 14])
-    # resampled_df = np.concatenate([pos_df, resampled_neg_df], axis=0)
-    # resampled_labels = resampled_df.pop('target')
-    # resampled_features = resampled_df
-#%%
-# def df_to_dataset(df, batch_size=32):
-#     df = df.copy()
-    
-#     labels = np.array(df.pop('target'))
-#     bool_labels = labels != 0 
-#     features = np.array(df)
-
-#     pos_features = features[bool_labels]
-#     pos_labels = labels[bool_labels]
-
-#     neg_features = features[~bool_labels]
-#     neg_labels = labels[~bool_labels]
-
-#     ids = np.arange(len(pos_features))
-#     choices = np.random.choice(ids, len(neg_features))
-
-#     resampled_pos_features = pos_features[choices]
-#     resampled_pos_labels = pos_labels[choices]
-#     print("resample pos:")
-#     print(resampled_pos_features.shape)
-#     print(resampled_pos_labels.shape)
-#     print("resample neg:")
-#     print(neg_features.shape)
-#     print(neg_labels.shape)
-
-#     resampled_features = np.concatenate([resampled_pos_features, neg_features], axis=0)
-#     resampled_labels = np.concatenate([resampled_pos_labels, neg_labels], axis=0)
-#     print("resample + concat:")
-#     print(resampled_features.shape)
-#     print(resampled_labels.shape)
-
-#     resampled_features_df = pd.DataFrame(resampled_features, columns=df.columns)
-#     resampled_labels_df = pd.DataFrame(resampled_labels, columns=['target'])
-
-#     print("resample + concat + df:")
-#     print(resampled_features_df.shape)
-#     print(resampled_labels_df.shape)
-#     print("FEATURESSSS")
-#     print(resampled_features_df.head)
-#     # print(resampled_features_df.shape)
-#     print("LABELLSSS")
-#     print(resampled_labels_df.head)
-#     # print(resampled_labels_df.shape)
-
-    # tf_dataset = tf.data.Dataset.from_tensor_slices(dict(resampled_features), resampled_labels)
-    # tf_dataset = tf_dataset.shuffle(buffer_size=len(resampled_features)).batch(batch_size).prefetch(2)
-    # print(len(tf_dataset))
-    # return tf_dataset
 
 #%%
 def df_to_dataset(df, batch_size=32, resample=False):
@@ -98,9 +31,6 @@ def df_to_dataset(df, batch_size=32, resample=False):
         pos_features = pos_df
         neg_labels = neg_df.pop('target')
         neg_features = neg_df
-        # print('before resampling: ')
-        # print(len(pos_features))
-        # print(len(neg_features)) 
         pos_ds = tf.data.Dataset.from_tensor_slices((dict(pos_features), pos_labels))
         neg_ds = tf.data.Dataset.from_tensor_slices((dict(neg_features), neg_labels))
         
@@ -123,27 +53,8 @@ train, val, test = np.split(dataframe.sample(frac=1), [int(0.8*len(dataframe)), 
 train_ds = df_to_dataset(df=train, batch_size=batch_size, resample=True)
 val_ds = df_to_dataset(df=val, batch_size=batch_size)
 test_ds = df_to_dataset(df=test, batch_size=batch_size)
-# size = (len(train_ds)+len(val_ds)+len(test_ds))
-# print('dataset sizes:')
-# print(len(train_ds))
-# print(len(val_ds))
-# print(len(test_ds))
-
 steps_per_epoch = np.ceil(2.0*pos/batch_size)
 print(steps_per_epoch)
-#%%
-# train_ds = train_ds.apply(tf.data.experimental.assert_cardinality(300000))
-# val_ds = val_ds.apply(tf.data.experimental.assert_cardinality(300000))
-# test_ds = test_ds.apply(tf.data.experimental.assert_cardinality(300000))
-
-# to view 3 batches of data: 
-# for person in train_dataset.take(3):
-#     print(person[0]) #  the input dictionaries
-#     print(person[1]) #  the binary categorical labels
-
-# for unit in train.get('target'):
-#     print(unit)
-
 #%%
 def get_normalization_layer(feature_name, dataset):
     # normalize numeric features
@@ -165,36 +76,6 @@ def get_category_encoding_layer(feature_name, dataset, dtype, max_tokens=None):
     encoder = layers.CategoryEncoding(num_tokens=index.vocabulary_size(), output_mode="one_hot")
     # multi-hot encode indeices - lambda function captures layers
     return lambda feature: encoder(index(feature))
-
-#%%
-# testing pipeline steps with small batch size 
-# batch_size=5
-
-# #train, test = train_test_split(dataset, test_size=0.2, random_state=RANDOM_SEED)
-# train, val, test = np.split(dataframe.sample(frac=1), [int(0.8*len(dataframe)), int(0.9*len(dataframe))])
-# train_ds = df_to_dataset(train, batch_size=batch_size)
-# val_ds = df_to_dataset(val, batch_size=batch_size)
-# test_ds = df_to_dataset(test, batch_size=batch_size)
-# print(len(train_ds))
-# print(len(val_ds))
-# print(len(test_ds))
-
-# # view 2 batches
-# [(train_features, label_batch)] = train_ds.take(1)
-# print('Every feature:', list(train_features.keys()))
-# print('A batch of ages:', train_features['ageGroup'])
-# print('A batch of targets:', label_batch) 
-
-# # normalization
-# # bmi_col = train_features['bmi']
-# # layer = get_normalization_layer('bmi', train_ds)
-# # print(layer(bmi_col))
-# # catgorization
-# age_col = train_features['ageGroup']
-# layer = get_category_encoding_layer('ageGroup', train_ds, 'string', max_tokens=14)
-# print(age_col)
-# print(layer(age_col))
-
 
 #%%
 # preprocess all features:
@@ -235,17 +116,7 @@ x = tf.keras.layers.Dropout(rate=0.2)(x)
 x = tf.keras.layers.Dense(units=128, activation='relu')(x)
 output = tf.keras.layers.Dense(units=1, activation='sigmoid')(x)
 model = tf.keras.Model(inputs, output)
-#%%
-# model = tf.keras.models.Sequential([
-#     tf.keras.layers.DenseFeatures(feature_columns=feature_columns),
-#     tf.keras.layers.Dense(units=128, activation='relu'), 
-#     tf.keras.layers.Dropout(rate=0.2),
-#     tf.keras.layers.Dense(units=128, activation='relu'), 
-#     # tf.keras.layers.Dense(units=128, activation='relu'), 
-#     # tf.keras.layers.Dropout(rate=0.2),
-#     # tf.keras.layers.Dense(units=60, activation='relu'),
-#     tf.keras.layers.Dense(units=1, activation='sigmoid')
-# ])
+
 #%%
 model.compile(optimizer='adam', 
               loss='binary_crossentropy', 
@@ -273,4 +144,3 @@ print(classification_report(test.get('target'), binary_predictions))
 # layer connectivity visualization
 #tf.keras.utils.plot_model(model, show_shapes=True, rankdir="LR")
 
-# %%
