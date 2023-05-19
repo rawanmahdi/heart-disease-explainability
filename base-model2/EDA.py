@@ -40,10 +40,7 @@ test_labels = np.array(test.pop('target'))
 train_features = np.array(train)
 val_features = np.array(val)
 test_features = np.array(test)
-#%%
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-selected_features = scaler.fit_transform(train_features['bmi'], train_features['physicalHealth'])
+
 #%%
 import seaborn as sns
 
@@ -76,3 +73,5 @@ plt.suptitle("Positive distribution")
 sns.jointplot(x=bmiN, y=physicalHealthN,
               kind='hex', xlim=(10,45), ylim=(-2,30))
 _ = plt.suptitle("Negative distribution")
+
+# %%

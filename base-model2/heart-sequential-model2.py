@@ -18,44 +18,124 @@ dataframe['target'] = np.where(dataframe['heartDisease']=='Yes', 1, 0)
 dataframe = dataframe.drop(columns=['heartDisease'])
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
+neg, pos = np.bincount(dataframe['target'])
 
 #%%
 # function to build data pipeline to extract, shuffle and batch load the data
-def df_to_dataset(df, batch_size=32):
+# def resampled_df(df):
+
+    # pos_df = df[df['target'] == 1]
+    # neg_df = df[df['target'] == 0]
+    # # pos_labels = pos_df.pop('target')
+    # # pos_features = pos_df
+    # # neg_labels = neg_df.pop('target')
+    # # neg_features = neg_df
+    # print(pos_df.shape)
+    # print(neg_df.shape)
+    # rng = np.random.default_rng()
+    # resampled_neg_df = rng.choice(neg_df, len(pos_df), replace=False)
+    # # print(neg_df[:, 14])
+    # resampled_df = np.concatenate([pos_df, resampled_neg_df], axis=0)
+    # resampled_labels = resampled_df.pop('target')
+    # resampled_features = resampled_df
+#%%
+# def df_to_dataset(df, batch_size=32):
+#     df = df.copy()
+    
+#     labels = np.array(df.pop('target'))
+#     bool_labels = labels != 0 
+#     features = np.array(df)
+
+#     pos_features = features[bool_labels]
+#     pos_labels = labels[bool_labels]
+
+#     neg_features = features[~bool_labels]
+#     neg_labels = labels[~bool_labels]
+
+#     ids = np.arange(len(pos_features))
+#     choices = np.random.choice(ids, len(neg_features))
+
+#     resampled_pos_features = pos_features[choices]
+#     resampled_pos_labels = pos_labels[choices]
+#     print("resample pos:")
+#     print(resampled_pos_features.shape)
+#     print(resampled_pos_labels.shape)
+#     print("resample neg:")
+#     print(neg_features.shape)
+#     print(neg_labels.shape)
+
+#     resampled_features = np.concatenate([resampled_pos_features, neg_features], axis=0)
+#     resampled_labels = np.concatenate([resampled_pos_labels, neg_labels], axis=0)
+#     print("resample + concat:")
+#     print(resampled_features.shape)
+#     print(resampled_labels.shape)
+
+#     resampled_features_df = pd.DataFrame(resampled_features, columns=df.columns)
+#     resampled_labels_df = pd.DataFrame(resampled_labels, columns=['target'])
+
+#     print("resample + concat + df:")
+#     print(resampled_features_df.shape)
+#     print(resampled_labels_df.shape)
+#     print("FEATURESSSS")
+#     print(resampled_features_df.head)
+#     # print(resampled_features_df.shape)
+#     print("LABELLSSS")
+#     print(resampled_labels_df.head)
+#     # print(resampled_labels_df.shape)
+
+    # tf_dataset = tf.data.Dataset.from_tensor_slices(dict(resampled_features), resampled_labels)
+    # tf_dataset = tf_dataset.shuffle(buffer_size=len(resampled_features)).batch(batch_size).prefetch(2)
+    # print(len(tf_dataset))
+    # return tf_dataset
+
+#%%
+def df_to_dataset(df, batch_size=32, resample=False):
     df = df.copy()
-    pos_df = df[df['target'] == 1]
-    neg_df = df[df['target'] == 0]
-    pos_labels = pos_df.pop('target')
-    pos_features = pos_df
-    neg_labels = neg_df.pop('target')
-    neg_features = neg_df
-    print('before resampling: ')
-    print(len(pos_features))
-    print(len(neg_features)) 
-    pos_ds = tf.data.Dataset.from_tensor_slices((dict(pos_features), pos_labels))
-    neg_ds = tf.data.Dataset.from_tensor_slices((dict(neg_features), neg_labels))
-    # resample
-    resampled_ds = tf.data.Dataset.sample_from_datasets([pos_ds, neg_ds], weights=[0.5, 0.5])
-    print(resampled_ds.apply(tf.data.experimental.assert_cardinality(54748)))
-    resampled_ds = resampled_ds.shuffle(buffer_size=len(df))
-    resampled_ds = resampled_ds.batch(batch_size).prefetch(3)
-    return resampled_ds
+    if resample:
+        pos_df = df[df['target'] == 1]
+        neg_df = df[df['target'] == 0]
+        pos_labels = pos_df.pop('target')
+        pos_features = pos_df
+        neg_labels = neg_df.pop('target')
+        neg_features = neg_df
+        # print('before resampling: ')
+        # print(len(pos_features))
+        # print(len(neg_features)) 
+        pos_ds = tf.data.Dataset.from_tensor_slices((dict(pos_features), pos_labels))
+        neg_ds = tf.data.Dataset.from_tensor_slices((dict(neg_features), neg_labels))
+        
+        resampled_ds = tf.data.Dataset.sample_from_datasets([pos_ds, neg_ds], weights=[0.5, 0.5])
+        #resampled_ds = resampled_ds.apply(tf.data.experimental.assert_cardinality(54748))
+        resampled_ds = resampled_ds.shuffle(buffer_size=len(df))
+        resampled_ds = resampled_ds.batch(batch_size).prefetch(2)
+        return resampled_ds.repeat(3)
+    else:
+        labels = df.pop('target')
+        tf_dataset = tf.data.Dataset.from_tensor_slices((dict(df), labels))
+        shuffled_tf_dataset = tf_dataset.shuffle(buffer_size=len(df)) # shuffling values 
+        return shuffled_tf_dataset.batch(batch_size).prefetch(2) # returning 32 samples per batch
+
+
 #%%
 # with large batch size
+batch_size=1024
 train, val, test = np.split(dataframe.sample(frac=1), [int(0.8*len(dataframe)), int(0.9*len(dataframe))])
-train_ds = df_to_dataset(df=train, batch_size=4096)
-val_ds = df_to_dataset(df=val, batch_size=4096)
-test_ds = df_to_dataset(df=test, batch_size=4096)
-train_ds = train_ds.apply(tf.data.experimental.assert_cardinality(300000))
-val_ds = val_ds.apply(tf.data.experimental.assert_cardinality(300000))
-test_ds = test_ds.apply(tf.data.experimental.assert_cardinality(300000))
+train_ds = df_to_dataset(df=train, batch_size=batch_size, resample=True)
+val_ds = df_to_dataset(df=val, batch_size=batch_size)
+test_ds = df_to_dataset(df=test, batch_size=batch_size)
+# size = (len(train_ds)+len(val_ds)+len(test_ds))
+# print('dataset sizes:')
+# print(len(train_ds))
+# print(len(val_ds))
+# print(len(test_ds))
 
-size = (len(train_ds)+len(val_ds)+len(test_ds))
-print(len(train_ds))
-print(len(val_ds))
-print(len(test_ds))
-
+steps_per_epoch = np.ceil(2.0*pos/batch_size)
+print(steps_per_epoch)
 #%%
+# train_ds = train_ds.apply(tf.data.experimental.assert_cardinality(300000))
+# val_ds = val_ds.apply(tf.data.experimental.assert_cardinality(300000))
+# test_ds = test_ds.apply(tf.data.experimental.assert_cardinality(300000))
+
 # to view 3 batches of data: 
 # for person in train_dataset.take(3):
 #     print(person[0]) #  the input dictionaries
@@ -173,10 +253,13 @@ model.compile(optimizer='adam',
 
 result = model.fit(train_ds, 
                     validation_data=val_ds, 
-                    epochs=20,
-                    use_multiprocessing=True, verbose=2)
+                    epochs=100,
+                    steps_per_epoch=steps_per_epoch,
+                    use_multiprocessing=True, 
+                    verbose=2)
 
 predictions = model.predict(test_ds)
+
 binary_predictions = tf.round(predictions).numpy().flatten()
 
 #%%
