@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report 
 
 #%%
-heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/base-model2/data/heart2.csv'
+heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/models/lifestyle-metrics-model/data/life-heart.csv'
 dataframe = pd.read_csv(heart_csv_path)
 print(dataframe.describe())
 print(dataframe.shape)
@@ -51,8 +51,8 @@ def df_to_dataset(df, batch_size=32, resample=False):
 batch_size=1024
 train, val, test = np.split(dataframe.sample(frac=1), [int(0.8*len(dataframe)), int(0.9*len(dataframe))])
 train_ds = df_to_dataset(df=train, batch_size=batch_size, resample=True)
-val_ds = df_to_dataset(df=val, batch_size=batch_size)
-test_ds = df_to_dataset(df=test, batch_size=batch_size)
+val_ds = df_to_dataset(df=val, batch_size=batch_size, resample=True)
+test_ds = df_to_dataset(df=test, batch_size=batch_size, resample=True)
 steps_per_epoch = np.ceil(2.0*pos/batch_size)
 print(steps_per_epoch)
 #%%

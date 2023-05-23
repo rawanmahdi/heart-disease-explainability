@@ -14,7 +14,7 @@ from sklearn.metrics import confusion_matrix
 
 
 #%%
-heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/base-model2/data/heart2.csv'
+heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/models/lifestyle-metrics-model/data/life-heart.csv'
 dataframe = pd.read_csv(heart_csv_path)
 dataframe.describe()
 #%%
