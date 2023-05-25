@@ -11,11 +11,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report 
 #%%
 heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/models/heart-metrics-model/data/heart.csv'
-dataset = pd.read_csv(heart_csv_path)
-print(dataset.describe())
-print(dataset.shape)
-dataset.drop_duplicates()
-print(dataset.shape)
+dataframe = pd.read_csv(heart_csv_path)
+print(dataframe.describe())
+print(dataframe.shape)
+dataframe.drop_duplicates()
+print(dataframe.shape)
 
 #%%
 feature_columns = []
@@ -29,25 +29,25 @@ age_buckets = tf.feature_column.bucketized_column(age,boundaries=[29, 35, 40, 45
 feature_columns.append(age_buckets)
 
 # indicator columns
-dataset["thal"] = dataset['thal'].apply(str) 
+dataframe["thal"] = dataframe['thal'].apply(str) 
 thal = tf.feature_column.categorical_column_with_vocabulary_list(
     'thal', ['3', '6', '7'])
 one_hot_thal = tf.feature_column.indicator_column(thal)
 feature_columns.append(one_hot_thal)
 
-dataset["sex"] = dataset['sex'].apply(str) 
+dataframe["sex"] = dataframe['sex'].apply(str) 
 sex = tf.feature_column.categorical_column_with_vocabulary_list(
     'sex', ['0', '1'])
 one_hot_sex = tf.feature_column.indicator_column(sex)
 feature_columns.append(one_hot_sex)
 
-dataset["cp"] = dataset['cp'].apply(str) 
+dataframe["cp"] = dataframe['cp'].apply(str) 
 cp = tf.feature_column.categorical_column_with_vocabulary_list(
     'cp', ['0', '1', '2', '3'])
 one_hot_cp = tf.feature_column.indicator_column(cp)
 feature_columns.append(one_hot_cp)
 
-dataset["slope"] = dataset['slope'].apply(str) 
+dataframe["slope"] = dataframe['slope'].apply(str) 
 slope = tf.feature_column.categorical_column_with_vocabulary_list(
     'slope', ['0', '1', '2'])
 one_hot_slope = tf.feature_column.indicator_column(slope)
@@ -78,7 +78,7 @@ def create_dataset(df, batch_size=32):
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 
-train, test = train_test_split(dataset, test_size=0.2, random_state=RANDOM_SEED)
+train, test = train_test_split(dataframe, test_size=0.2, random_state=RANDOM_SEED)
 
 train_dataset = create_dataset(train)
 test_dataset = create_dataset(test)
@@ -96,9 +96,6 @@ model = tf.keras.models.Sequential([
     tf.keras.layers.Dense(units=128, activation='relu'), 
     tf.keras.layers.Dropout(rate=0.2),
     tf.keras.layers.Dense(units=128, activation='relu'), 
-    tf.keras.layers.Dense(units=256, activation='relu'), 
-    tf.keras.layers.Dropout(rate=0.2),
-    tf.keras.layers.Dense(units=256, activation='relu'),
     tf.keras.layers.Dense(units=128, activation='relu'), 
     tf.keras.layers.Dropout(rate=0.2),
     tf.keras.layers.Dense(units=128, activation='relu'),
@@ -111,22 +108,66 @@ model.compile(optimizer='adam',
 
 history = model.fit(train_dataset, 
                     validation_data=test_dataset, 
-                    epochs=900,
-                    use_multiprocessing=True, verbose=1)
+                    batch_size=32,
+                    epochs=500,
+                    use_multiprocessing=True, 
+                    verbose=1)
 
 #%%
 model.evaluate(test_dataset)
 #%%
 predictions = model.predict(test_dataset)
-non_bin_predictions = predictions.numpy().flatten()
+print(predictions)
 binary_predictions = tf.round(predictions).numpy().flatten()
 print(classification_report(test.get('target'), binary_predictions))
 
 #%%
-sample = list(test_dataset.take(1))
-print((sample))
+sample =(test.iloc[204,:].shape)
 # %%
 import shap
+#%%
+def f(X):
+    predictions = model.predict(X)
+    return predictions.flatten()
+#%%
+explainer = shap.KernelExplainer(model=f, data=dataframe)
+shap_values = explainer.shap_values(X=sample, nsamples='auto')
 
-explainer = shap.KernelExplainer(non_bin_predictions, train)
-shap_values = explainer.shap_values(X=sample, )
+# %%
+
+heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/models/heart-metrics-model/data/heart.csv'
+dataframe = pd.read_csv(heart_csv_path)
+train, test = train_test_split(dataframe, test_size=0.2, random_state=RANDOM_SEED)
+numer_labels = ['age', 'thalach', 'trestbps',  'chol', 'oldpeak']
+y_train = train.pop('target')
+X_train = train[numer_labels]
+y_test = test.pop('target')
+X_test = test[numer_labels]
+#%%
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler().fit(X_train[numer_labels])
+X_train[numer_labels] = scaler.transform(X_train[numer_labels])
+X_test[numer_labels] = scaler.transform(X_test[numer_labels])
+#%%
+model1 = tf.keras.Sequential([
+    tf.keras.layers.Dense(10, activation='relu'),
+    tf.keras.layers.Dense(10, activation='relu'),
+    tf.keras.layers.Dense(1, activation='sigmoid')
+])
+model1.compile(optimizer="adam", 
+              loss ="binary_crossentropy", 
+              metrics=["accuracy"])
+model1.fit(X_train, y_train, 
+          epochs=50,
+          batch_size=32,
+          validation_data=(X_test, y_test))
+#%% 
+model1.evaluate(X_test, y_test) 
+#%%
+explainer = shap.KernelExplainer(model1, X_train.iloc[:50, :])
+#%%
+shap.initjs()
+shap_values = explainer.shap_values(X_train.iloc[30,:],nsamples='auto')
+shap.force_plot(explainer.expected_value, shap_values[0], X_train.iloc[30,:])
+
+# %%
