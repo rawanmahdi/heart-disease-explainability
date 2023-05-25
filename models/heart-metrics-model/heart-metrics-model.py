@@ -1,3 +1,4 @@
+#%%
 import tensorflow as tf
 import numpy as np
 from tensorflow import keras
@@ -8,7 +9,7 @@ import pandas as pd
 #from matplotlib import rc
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report 
-
+#%%
 heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/models/heart-metrics-model/data/heart.csv'
 dataset = pd.read_csv(heart_csv_path)
 print(dataset.describe())
@@ -16,9 +17,8 @@ print(dataset.shape)
 dataset.drop_duplicates()
 print(dataset.shape)
 
-
+#%%
 feature_columns = []
-
 # numeric columns - real values 
 for column in ['age', 'trestbps', 'chol', 'thalach', 'oldpeak', 'ca']:
     feature_columns.append(tf.feature_column.numeric_column(column))
@@ -66,7 +66,7 @@ cp_slope_crossed = tf.feature_column.crossed_column([cp, slope], hash_bucket_siz
 cp_slope_crossed = tf.feature_column.indicator_column(cp_slope_crossed)
 feature_columns.append(cp_slope_crossed)
 
-
+#%%
 # function to build data pipeline to extract, shuffle and batch load the data
 def create_dataset(df, batch_size=32):
     df = df.copy()
@@ -74,7 +74,7 @@ def create_dataset(df, batch_size=32):
     tf_dataset = tf.data.Dataset.from_tensor_slices((dict(df), labels))
     shuffled_tf_dataset = tf_dataset.shuffle(buffer_size=len(df)) # shuffling values 
     return shuffled_tf_dataset.batch(batch_size) # returning 32 samples per batch
-
+#%%
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 
@@ -82,7 +82,7 @@ train, test = train_test_split(dataset, test_size=0.2, random_state=RANDOM_SEED)
 
 train_dataset = create_dataset(train)
 test_dataset = create_dataset(test)
-
+#%%
 # to view 3 batches of data: 
 for person in train_dataset.take(3):
     print(person[0]) #  the input dictionaries
@@ -90,30 +90,43 @@ for person in train_dataset.take(3):
 
 for unit in train.get('target'):
     print(unit)
-
-
+#%%
 model = tf.keras.models.Sequential([
     tf.keras.layers.DenseFeatures(feature_columns=feature_columns),
     tf.keras.layers.Dense(units=128, activation='relu'), 
     tf.keras.layers.Dropout(rate=0.2),
     tf.keras.layers.Dense(units=128, activation='relu'), 
-    # tf.keras.layers.Dense(units=128, activation='relu'), 
-    # tf.keras.layers.Dropout(rate=0.2),
-    # tf.keras.layers.Dense(units=60, activation='relu'),
+    tf.keras.layers.Dense(units=256, activation='relu'), 
+    tf.keras.layers.Dropout(rate=0.2),
+    tf.keras.layers.Dense(units=256, activation='relu'),
+    tf.keras.layers.Dense(units=128, activation='relu'), 
+    tf.keras.layers.Dropout(rate=0.2),
+    tf.keras.layers.Dense(units=128, activation='relu'),
     tf.keras.layers.Dense(units=1, activation='sigmoid')
 ])
-
+#%%
 model.compile(optimizer='adam', 
               loss='binary_crossentropy', 
               metrics = ['accuracy'])
 
 history = model.fit(train_dataset, 
                     validation_data=test_dataset, 
-                    epochs=100,
+                    epochs=900,
                     use_multiprocessing=True, verbose=1)
 
+#%%
+model.evaluate(test_dataset)
+#%%
 predictions = model.predict(test_dataset)
+non_bin_predictions = predictions.numpy().flatten()
 binary_predictions = tf.round(predictions).numpy().flatten()
-
-
 print(classification_report(test.get('target'), binary_predictions))
+
+#%%
+sample = list(test_dataset.take(1))
+print((sample))
+# %%
+import shap
+
+explainer = shap.KernelExplainer(non_bin_predictions, train)
+shap_values = explainer.shap_values(X=sample, )
