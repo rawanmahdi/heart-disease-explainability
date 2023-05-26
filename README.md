@@ -9,6 +9,7 @@
 ## Resources and Tutorials ##
 ### Explainability Methods + Use Cases ###
 ![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/methods-choice.gif?raw=true)
+http://aix360.mybluemix.net/resources#guidance 
 
 ### Classify structured data using Keras preprocessing layers ###
  https://www.tensorflow.org/tutorials/structured_data/preprocessing_layers
