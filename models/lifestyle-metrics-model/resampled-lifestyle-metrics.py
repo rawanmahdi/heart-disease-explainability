@@ -48,12 +48,12 @@ def df_to_dataset(df, batch_size=32, resample=False):
 #%%
 # with large batch size
 batch_size=64
-# train, val, test = np.split(dataframe.sample(frac=1), [int(0.8*len(dataframe)), int(0.9*len(dataframe))])
+train, val, test = np.split(dataframe.sample(frac=1), [int(0.8*len(dataframe)), int(0.9*len(dataframe))])
 dataframe = dataframe.sample(frac=1)
-train, val = train_test_split(dataframe, test_size=0.3, random_state=RANDOM_SEED)
+#train, val = train_test_split(dataframe, test_size=0.3, random_state=RANDOM_SEED)
 resampled_train_ds = df_to_dataset(df=train, batch_size=batch_size, resample=True)
 val_ds = df_to_dataset(df=val, batch_size=batch_size, resample=False)
-# test_ds = df_to_dataset(df=test, batch_size=batch_size)
+test_ds = df_to_dataset(df=test, batch_size=batch_size)
 steps_per_epoch = np.ceil(2.0*pos/batch_size)
 print(steps_per_epoch)
 #%%
@@ -134,9 +134,6 @@ result = model.fit(resampled_train_ds,
                     use_multiprocessing=True, 
                     verbose=1)
 
-predictions = model.predict(val_ds)
-
-binary_predictions = tf.round(predictions).numpy().flatten()
 
 #%%
 plt.plot(result.history['loss'], label='loss')
@@ -145,9 +142,9 @@ plt.legend()
 
 
 #%%
-print(classification_report(val.get('target'), binary_predictions))
+predictions = model.predict(test_ds)
+binary_predictions = tf.round(predictions).numpy().flatten()
+print(classification_report(test.get('target'), binary_predictions))
+#%%
 # layer connectivity visualization
 #tf.keras.utils.plot_model(model, show_shapes=True, rankdir="LR")
-
-
-# %%
