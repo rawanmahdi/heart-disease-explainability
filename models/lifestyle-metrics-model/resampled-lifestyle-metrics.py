@@ -43,7 +43,7 @@ def df_to_dataset(df, batch_size=32, resample=False):
         labels = df.pop('target')
         tf_dataset = tf.data.Dataset.from_tensor_slices((dict(df), labels))
         shuffled_tf_dataset = tf_dataset.shuffle(buffer_size=len(df)) # shuffling values 
-        return shuffled_tf_dataset.batch(batch_size).prefetch(2) # returning 32 samples per batch
+        return shuffled_tf_dataset.batch(batch_size).prefetch(2).repeat(2) # returning 32 samples per batch
 
 
 #%%
@@ -97,10 +97,13 @@ for header in ["bmi", "physicalHealth", "mentalHealth", 'sleepHours' ]:
 for header in ["smoking","alcoholDrinking","stroke","diffWalk",
                 "sex", "ageGroup", "diabetic", "physicalActivity", 
                 "overallHealth", "asthma", "kidneyDisease", "skinCancer"]:
+    
+    # declare header as a keras Input
     cat_col = tf.keras.Input(shape=(1,), name=header, dtype='string')
     # keras inputs array
     inputs.append(cat_col)
 
+    # get preprocessing layer 
     cat_layer = get_category_encoding_layer(feature_name=header,
                                             dataset=train_ds, 
                                             dtype='string', 
@@ -109,6 +112,7 @@ for header in ["smoking","alcoholDrinking","stroke","diffWalk",
     # encoded feature
     encoded_features.append(encoded_cat_col)
 #%%
+# KERAS FUNCTIONAL API - MODEL BUILD   
 # merge list feature inputs into one vector
 features = tf.keras.layers.concatenate(encoded_features)
 x = tf.keras.layers.Dense(units=128, activation="relu")(features)
