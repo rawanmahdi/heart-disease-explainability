@@ -7,7 +7,11 @@
 ![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/serving-vs-local.png?raw=true)
 
 ## Resources and Tutorials ##
+### Explainability Methods + Use Cases ###
+![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/methods-choice.gif?raw=true)
 
-Classify structured data using Keras preprocessing layers: https://www.tensorflow.org/tutorials/structured_data/preprocessing_layers
+### Classify structured data using Keras preprocessing layers ###
+ https://www.tensorflow.org/tutorials/structured_data/preprocessing_layers
 
-Classification on imbalanced data: https://www.tensorflow.org/tutorials/structured_data/imbalanced_data
+### Classification on imbalanced data ###
+ https://www.tensorflow.org/tutorials/structured_data/imbalanced_data
