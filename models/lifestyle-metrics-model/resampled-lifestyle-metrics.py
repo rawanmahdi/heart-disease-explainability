@@ -37,22 +37,23 @@ def df_to_dataset(df, batch_size=32, resample=False):
         resampled_ds = tf.data.Dataset.sample_from_datasets([pos_ds, neg_ds], weights=[0.5, 0.5])
         #resampled_ds = resampled_ds.apply(tf.data.experimental.assert_cardinality(54748))
         resampled_ds = resampled_ds.shuffle(buffer_size=len(df))
-        resampled_ds = resampled_ds.batch(batch_size).prefetch(2)
-        return resampled_ds.repeat(3)
+        resampled_ds = resampled_ds.batch(batch_size).prefetch(2).repeat()
+        return resampled_ds
     else:
         labels = df.pop('target')
-        tf_dataset = tf.data.Dataset.from_tensor_slices((dict(df), labels))
+        tf_dataset = tf.data.Dataset.from_tensor_slices((dict(df), labels)).cache()
         shuffled_tf_dataset = tf_dataset.shuffle(buffer_size=len(df)) # shuffling values 
-        return shuffled_tf_dataset.batch(batch_size).prefetch(2).repeat(2) # returning 32 samples per batch
-
+        return tf_dataset.batch(batch_size).prefetch(2)# returning 32 samples per batch
 
 #%%
 # with large batch size
-batch_size=1024
-train, val, test = np.split(dataframe.sample(frac=1), [int(0.8*len(dataframe)), int(0.9*len(dataframe))])
-train_ds = df_to_dataset(df=train, batch_size=batch_size, resample=True)
-val_ds = df_to_dataset(df=val, batch_size=batch_size, resample=True)
-test_ds = df_to_dataset(df=test, batch_size=batch_size, resample=True)
+batch_size=64
+# train, val, test = np.split(dataframe.sample(frac=1), [int(0.8*len(dataframe)), int(0.9*len(dataframe))])
+dataframe = dataframe.sample(frac=1)
+train, val = train_test_split(dataframe, test_size=0.3, random_state=RANDOM_SEED)
+resampled_train_ds = df_to_dataset(df=train, batch_size=batch_size, resample=True)
+val_ds = df_to_dataset(df=val, batch_size=batch_size, resample=False)
+# test_ds = df_to_dataset(df=test, batch_size=batch_size)
 steps_per_epoch = np.ceil(2.0*pos/batch_size)
 print(steps_per_epoch)
 #%%
@@ -61,7 +62,7 @@ def get_normalization_layer(feature_name, dataset):
     normalizer = layers.Normalization(axis=None)
     # extract feature from dataset
     feature_ds = dataset.map(lambda x, y: x[feature_name])
-    normalizer.adapt(feature_ds)
+    normalizer.adapt(feature_ds, batch_size=batch_size, steps=steps_per_epoch)
     return normalizer
 def get_category_encoding_layer(feature_name, dataset, dtype, max_tokens=None):
     if dtype == 'string':
@@ -71,7 +72,7 @@ def get_category_encoding_layer(feature_name, dataset, dtype, max_tokens=None):
     # extract feature from dataset
     feature_ds = dataset.map(lambda x, y: x[feature_name])
     # 'learn' all possible feature values, assign each an int index 
-    index.adapt(feature_ds)
+    index.adapt(feature_ds, batch_size=batch_size, steps=steps_per_epoch)
     # encode integer index
     encoder = layers.CategoryEncoding(num_tokens=index.vocabulary_size(), output_mode="one_hot")
     # multi-hot encode indeices - lambda function captures layers
@@ -88,7 +89,7 @@ for header in ["bmi", "physicalHealth", "mentalHealth", 'sleepHours' ]:
     # keras inputs array
     inputs.append(num_col)
 
-    norm_layer = get_normalization_layer(feature_name=header, dataset=train_ds)
+    norm_layer = get_normalization_layer(feature_name=header, dataset=resampled_train_ds)
     encoded_num_col = norm_layer(num_col)
     # encoded feature
     encoded_features.append(encoded_num_col)
@@ -105,7 +106,7 @@ for header in ["smoking","alcoholDrinking","stroke","diffWalk",
 
     # get preprocessing layer 
     cat_layer = get_category_encoding_layer(feature_name=header,
-                                            dataset=train_ds, 
+                                            dataset=resampled_train_ds, 
                                             dtype='string', 
                                             max_tokens=None)
     encoded_cat_col = cat_layer(cat_col)
@@ -126,14 +127,14 @@ model.compile(optimizer='adam',
               loss='binary_crossentropy', 
               metrics = ['accuracy'])
 
-result = model.fit(train_ds, 
+result = model.fit(resampled_train_ds, 
                     validation_data=val_ds, 
-                    epochs=100,
+                    epochs=20,
                     steps_per_epoch=steps_per_epoch,
                     use_multiprocessing=True, 
-                    verbose=2)
+                    verbose=1)
 
-predictions = model.predict(test_ds)
+predictions = model.predict(val_ds)
 
 binary_predictions = tf.round(predictions).numpy().flatten()
 
@@ -144,7 +145,9 @@ plt.legend()
 
 
 #%%
-print(classification_report(test.get('target'), binary_predictions))
+print(classification_report(val.get('target'), binary_predictions))
 # layer connectivity visualization
 #tf.keras.utils.plot_model(model, show_shapes=True, rankdir="LR")
 
+
+# %%
