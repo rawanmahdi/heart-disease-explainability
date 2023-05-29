@@ -26,7 +26,7 @@ X_val_NORM = scaler.transform(X_val)
 X_test_NORM = scaler.transform(X_test)
 #%%
 # load saved model
-model = keras.models.load_model("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/heart-attribute-model/saved-model")
+model = keras.models.load_model("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/heart-attributes-model/saved-model")
 #%%
 # fit kernel explainer using training data
 explainer = shap.KernelExplainer(model, X_train_NORM[:500, :])
