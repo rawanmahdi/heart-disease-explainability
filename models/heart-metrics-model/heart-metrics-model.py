@@ -2,6 +2,7 @@
 import tensorflow as tf
 import numpy as np
 import pandas as pd
+from sklearn.metrics import classification_report
 
 # %%
 heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/models/heart-metrics-model/data/heart.csv'
@@ -42,5 +43,8 @@ model.fit(X_train_NORM, y_train,
           validation_data=(X_val_NORM, y_val))
 #%% 
 model.evaluate(X_test_NORM, y_test) 
+#%%
+binary_predictions = tf.round(model.predict(X_test)).numpy().flatten()
+print(classification_report(y_test, binary_predictions))
 #%%
 model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/models/heart-metrics-model")
