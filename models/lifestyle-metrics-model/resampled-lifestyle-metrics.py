@@ -34,7 +34,7 @@ def df_to_dataset(df, batch_size=32, resample=False):
         pos_ds = tf.data.Dataset.from_tensor_slices((dict(pos_features), pos_labels))
         neg_ds = tf.data.Dataset.from_tensor_slices((dict(neg_features), neg_labels))
         
-        resampled_ds = tf.data.Dataset.sample_from_datasets([pos_ds, neg_ds], weights=[0.5, 0.5])
+        resampled_ds = tf.data.Dataset.sample_from_datasets([pos_ds, neg_ds], weights=[0.65, 0.35])
         #resampled_ds = resampled_ds.apply(tf.data.experimental.assert_cardinality(54748))
         resampled_ds = resampled_ds.shuffle(buffer_size=len(df))
         resampled_ds = resampled_ds.batch(batch_size).prefetch(2).repeat()
@@ -148,3 +148,22 @@ print(classification_report(test.get('target'), binary_predictions))
 #%%
 # layer connectivity visualization
 #tf.keras.utils.plot_model(model, show_shapes=True, rankdir="LR")
+
+
+#%%
+df = pd.read_csv(heart_csv_path)
+df['target'] = np.where(df['heartDisease']=='Yes', 1, 0)
+df = df.drop(columns=['heartDisease'])
+pos_df = df[df['target'] == 1]
+neg_df = df[df['target'] == 0]
+pos_labels = pos_df.pop('target')
+pos_features = pos_df
+neg_labels = neg_df.pop('target')
+neg_features = neg_df
+pos_ds = tf.data.Dataset.from_tensor_slices((dict(pos_features), pos_labels))
+neg_ds = tf.data.Dataset.from_tensor_slices((dict(neg_features), neg_labels))
+# sampled_person = pos_ds.take(1)
+# prediction = model.predict(sampled_person)
+# binary_predictions = tf.round(predictions).numpy().flatten()
+# print(binary_predictions)
+# %%

@@ -142,19 +142,24 @@ explainer = shap.KernelExplainer(model=model, data=X_train.iloc[:50, :])
 shap_values = explainer.shap_values(X=sample, nsamples='auto')
 
 # %%
-
 heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/models/heart-metrics-model/data/heart.csv'
 dataframe = pd.read_csv(heart_csv_path)
-train, test = train_test_split(dataframe, test_size=0.2, random_state=42)
-numer_labels = ['age', 'thalach', 'trestbps',  'chol', 'oldpeak']
+train, val, test = np.split(dataframe.sample(frac=1), [int(0.6*len(dataframe)), int(0.9*len(dataframe))])
+# train, test = train_test_split(dataframe, test_size=0.2, random_state=42)
+# numer_labels = ['age', 'thalach', 'trestbps',  'chol', 'oldpeak']
 # y_train = train.pop('target')
 # X_train = train[numer_labels]
 # y_test = test.pop('target')
 # X_test = test[numer_labels]
 y_train = train.pop('target')
 X_train = train
+y_val = val.pop('target')
+X_val = val
 y_test = test.pop('target')
 X_test = test
+print(len(X_train))
+print(len(X_val))
+print(len(X_test))
 #%%
 from sklearn.preprocessing import StandardScaler
 # scaler = StandardScaler().fit(X_train[numer_labels])
@@ -162,27 +167,125 @@ from sklearn.preprocessing import StandardScaler
 # X_test[numer_labels] = scaler.transform(X_test[numer_labels])
 
 scaler = StandardScaler().fit(X_train)
-X_train = scaler.transform(X_train)
-X_test = scaler.transform(X_test)
+X_train_NORM = scaler.transform(X_train)
+X_val_NORM = scaler.transform(X_val)
+X_test_NORM = scaler.transform(X_test)
 
 #%%
 model1 = tf.keras.Sequential([
-    tf.keras.layers.Dense(10, activation='relu'),
-    tf.keras.layers.Dense(10, activation='relu'),
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Dense(units=128, activation='relu'), 
+    tf.keras.layers.Dropout(rate=0.2),
+    tf.keras.layers.Dense(units=128, activation='relu'), 
+    # tf.keras.layers.Dense(units=128, activation='relu'), 
+    # tf.keras.layers.Dropout(rate=0.2),
+    # tf.keras.layers.Dense(units=128, activation='relu'),
+    tf.keras.layers.Dense(units=1, activation='sigmoid')
 ])
 model1.compile(optimizer="adam", 
               loss ="binary_crossentropy", 
               metrics=["accuracy"])
-model1.fit(X_train, y_train, 
-          epochs=50,
+model1.fit(X_train_NORM, y_train, 
+          epochs=70,
           batch_size=32,
-          validation_data=(X_test, y_test))
+          validation_data=(X_val_NORM, y_val))
 #%% 
-model1.evaluate(X_test, y_test) 
+model1.evaluate(X_test_NORM, y_test) 
+# X = tf.data.Dataset.from_tensor_slices(dict(X_test_NORM), y_test)
+# predictions = model.predict(X)
+# binary_predictions = tf.round(predictions).numpy().flatten()
+# print(classification_report(y_test, binary_predictions))
+
 #%%
-explainer = shap.KernelExplainer(model1, X_train[:50, :])
+explainer = shap.KernelExplainer(model1, X_train_NORM[:500, :])
 #%%
 shap.initjs()
-shap_values = explainer.shap_values(X_train[30,:],nsamples='auto')
-shap.force_plot(explainer.expected_value, shap_values[0], X_train[30,:])
+shap_values = explainer.shap_values(X_train_NORM[30,:],nsamples='auto')
+shap.force_plot(explainer.expected_value, shap_values[0], X_train_NORM[30,:])
+
+# %%
+i=0
+for label in dataframe.columns:
+    if label != 'target':
+        print(label,";",shap_values[0][i])
+        i+=1
+print(X_train.iloc[30,:])
+print(y_train.iloc[30])
+
+# %%
+shap_values = explainer.shap_values(X_train_NORM[20,:],nsamples='auto')
+shap.force_plot(explainer.expected_value, shap_values[0], X_train_NORM[20,:])
+#%%
+i=0
+for label in dataframe.columns:
+    if label != 'target':
+        print(label,";",shap_values[0][i])
+        i+=1
+print(X_train.iloc[20,:])
+print(y_train.iloc[20])
+
+# %%
+shap_values = explainer.shap_values(X_train_NORM[15,:],nsamples='auto')
+shap.force_plot(explainer.expected_value, shap_values[0], X_train_NORM[15,:])
+
+# %%
+i=0
+for label in dataframe.columns:
+    if label != 'target':
+        print(label,";",shap_values[0][i])
+        i+=1
+print(X_train.iloc[15,:])
+print(y_train.iloc[15])
+
+# %%
+shap_values = explainer.shap_values(X_train_NORM[35,:],nsamples='auto')
+shap.force_plot(explainer.expected_value, shap_values[0], X_train_NORM[35,:])
+
+# %%
+i=0
+for label in dataframe.columns:
+    if label != 'target':
+        print(label,";",shap_values[0][i])
+        i+=1
+print(X_train.iloc[35,:])
+print(y_train.iloc[35])
+
+# %%
+shap_values = explainer.shap_values(X_test_NORM[1,:],nsamples='auto')
+shap.force_plot(explainer.expected_value, shap_values[0], X_test_NORM[1,:])
+
+# %%
+i=0
+for label in dataframe.columns:
+    if label != 'target':
+        print(label,";",shap_values[0][i])
+        i+=1
+print(X_test.iloc[1,:])
+print(y_test.iloc[1])
+
+# %%
+shap_values = explainer.shap_values(X_test_NORM[2,:],nsamples='auto')
+shap.force_plot(explainer.expected_value, shap_values[0], X_test_NORM[2,:])
+
+# %%
+i=0
+for label in dataframe.columns:
+    if label != 'target':
+        print(label,";",shap_values[0][i])
+        i+=1
+print(X_test.iloc[2,:])
+print(y_test.iloc[2])
+
+# %%
+shap_values = explainer.shap_values(X_test_NORM[3,:],nsamples='auto')
+shap.force_plot(explainer.expected_value, shap_values[0], X_test_NORM[3,:])
+
+# %%
+i=0
+for label in dataframe.columns:
+    if label != 'target':
+        print(label,";",shap_values[0][i])
+        i+=1
+print(X_test.iloc[3,:])
+print(y_test.iloc[3])
+
+# %%
