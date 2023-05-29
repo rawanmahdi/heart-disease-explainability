@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report 
 
 #%%
-heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/models/lifestyle-metrics-model/data/life-heart.csv'
+heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/data/life-heart.csv'
 dataframe = pd.read_csv(heart_csv_path)
 print(dataframe.describe())
 print(dataframe.shape)

@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.metrics import classification_report
 
 # %%
-heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/models/heart-metrics-model/data/heart.csv'
+heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/heart-attributes-model/data/heart.csv'
 dataframe = pd.read_csv(heart_csv_path)
 train, val, test = np.split(dataframe.sample(frac=1), [int(0.6*len(dataframe)), int(0.9*len(dataframe))])
 # train, test = train_test_split(dataframe, test_size=0.2, random_state=42)
@@ -47,4 +47,6 @@ model.evaluate(X_test_NORM, y_test)
 binary_predictions = tf.round(model.predict(X_test)).numpy().flatten()
 print(classification_report(y_test, binary_predictions))
 #%%
-model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/models/heart-metrics-model")
+model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/heart-attributes-model/saved-model")
+
+# %%

@@ -7,7 +7,7 @@ import shap
 
 #%%
 # import data
-heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/models/heart-metrics-model/data/heart.csv'
+heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/heart-attributes-model/data/heart.csv'
 dataframe = pd.read_csv(heart_csv_path)
 
 train, val, test = np.split(dataframe.sample(frac=1), [int(0.6*len(dataframe)), int(0.9*len(dataframe))])
@@ -26,7 +26,7 @@ X_val_NORM = scaler.transform(X_val)
 X_test_NORM = scaler.transform(X_test)
 #%%
 # load saved model
-model = keras.models.load_model("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/models/heart-metrics-model/saved-model")
+model = keras.models.load_model("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/heart-attribute-model/saved-model")
 #%%
 # fit kernel explainer using training data
 explainer = shap.KernelExplainer(model, X_train_NORM[:500, :])
