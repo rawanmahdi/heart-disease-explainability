@@ -48,4 +48,58 @@ neg0, pos0 = np.bincount(y_train_resampled)
 print("No.negative samples after undersampling",neg0)
 print("No.positive samples after undersampling",pos0)
 
+#%%
+def get_normalization_layer(feature_name, dataset, batch_size=32):
+    # normalize numeric features
+    normalizer = layers.Normalization(axis=None)
+    # extract feature from dataset
+    feature_data = dataset[feature_name]
+    normalizer.adapt(feature_data, batch_size=batch_size)
+    return normalizer
+def get_category_encoding_layer(feature_name, dataset, dtype, max_tokens=None, batch_size=32):
+    if dtype == 'string':
+        index = layers.StringLookup(max_tokens=max_tokens)
+    else:
+        index = layers.IntegerLookup(max_tokens=max_tokens)
+    # extract feature from dataset
+    feature_ds = dataset[feature_name]
+    # 'learn' all possible feature values, assign each an int index 
+    index.adapt(feature_ds, batch_size=batch_size)
+    # encode integer index
+    encoder = layers.CategoryEncoding(num_tokens=index.vocabulary_size(), output_mode="one_hot")
+    # multi-hot encode indeices - lambda function captures layers
+    return lambda feature: encoder(index(feature))
+#%%
+inputs = []
+encoded_features =[]
+
+# numerical
+for header in ["bmi", "physicalHealth", "mentalHealth", 'sleepHours' ]:
+    num_col = tf.keras.Input(shape=(1,), name=header)
+    # keras inputs array
+    inputs.append(num_col)
+
+    norm_layer = get_normalization_layer(feature_name=header, dataset=X_train_resampled)
+    encoded_num_col = norm_layer(num_col)
+    # encoded feature
+    encoded_features.append(encoded_num_col)
+
+# categorical
+for header in ["smoking","alcoholDrinking","stroke","diffWalk",
+                "sex", "ageGroup", "diabetic", "physicalActivity", 
+                "overallHealth", "asthma", "kidneyDisease", "skinCancer"]:
+    
+    # declare header as a keras Input
+    cat_col = tf.keras.Input(shape=(1,), name=header, dtype='string')
+    # keras inputs array
+    inputs.append(cat_col)
+
+    # get preprocessing layer 
+    cat_layer = get_category_encoding_layer(feature_name=header,
+                                            dataset=X_train_resampled, 
+                                            dtype='string', 
+                                            max_tokens=None)
+    encoded_cat_col = cat_layer(cat_col)
+    # encoded feature
+    encoded_features.append(encoded_cat_col)
 # %%
