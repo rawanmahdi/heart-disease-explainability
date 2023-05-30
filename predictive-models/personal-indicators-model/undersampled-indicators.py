@@ -24,7 +24,7 @@ df = dataframe.copy()
 y = df.pop('target')
 X = df
 #%%
-train, val, test = np.split(dataframe.sample(frac=1), [int(0.8*len(dataframe)), int(0.9*len(dataframe))])
+train, val, test = np.split(dataframe.sample(frac=1), [int(0.6*len(dataframe)), int(0.9*len(dataframe))])
 y_train = train.pop('target')
 X_train = train
 y_val = val.pop('target')
@@ -46,13 +46,14 @@ rus = RandomUnderSampler(random_state=0)
 rus.fit(X,y)
 # only resample training dataset
 X_train_resampled, y_train_resampled = rus.fit_resample(X_train,y_train)
-
+X_val_resampled, y_val_resampled = rus.fit_resample(X_val, y_val)
 neg0, pos0 = np.bincount(y_train_resampled)
 print("No.negative samples after undersampling",neg0)
 print("No.positive samples after undersampling",pos0)
-
+print(len(y_train_resampled))
+print(len(y_val_resampled))
 #%%
-def df_to_dataset(features, labels, batch_size=32, resample=False):
+def df_to_dataset(features, labels, batch_size=512, resample=False):
     tf_dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels)).cache()
     shuffled_tf_dataset = tf_dataset.shuffle(buffer_size=len(df)) # shuffling values 
     return shuffled_tf_dataset.batch(batch_size).prefetch(2)# returning 32 samples per batch
@@ -82,7 +83,8 @@ def get_category_encoding_layer(feature_name, dataset, dtype, max_tokens=None, b
     return lambda feature: encoder(index(feature))
 #%%
 train_resampled_ds= df_to_dataset(X_train_resampled, y_train_resampled)
-val_ds= df_to_dataset(X_val, y_val)
+#val_ds= df_to_dataset(X_val_resampled, y_val_resampled)
+val_ds = df_to_dataset(X_val, y_val)
 test_ds= df_to_dataset(X_test, y_test)
 
 #%%
@@ -122,9 +124,13 @@ for header in ["smoking","alcoholDrinking","stroke","diffWalk",
 # KERAS FUNCTIONAL API - MODEL BUILD   
 # merge list feature inputs into one vector
 features = tf.keras.layers.concatenate(encoded_features)
-x = tf.keras.layers.Dense(units=128, activation="relu")(features)
-x = tf.keras.layers.Dropout(rate=0.2)(x)
+x = tf.keras.layers.Dense(units=64, activation="relu")(features)
+x = tf.keras.layers.Dropout(rate=0.4)(x)
 x = tf.keras.layers.Dense(units=128, activation='relu')(x)
+x = tf.keras.layers.Dropout(rate=0.4)(x)
+x = tf.keras.layers.Dense(units=128, activation="relu")(x)
+x = tf.keras.layers.Dropout(rate=0.4)(x)
+x = tf.keras.layers.Dense(units=64, activation='relu')(x)
 output = tf.keras.layers.Dense(units=1, activation='sigmoid')(x)
 model = tf.keras.Model(inputs, output)
 
@@ -135,7 +141,7 @@ model.compile(optimizer='adam',
 
 result = model.fit(train_resampled_ds,
                     validation_data=val_ds, 
-                    epochs=50,
+                    epochs=100,
                     verbose=1)
 
 # %%
@@ -146,5 +152,4 @@ plt.legend()
 predictions = model.predict(test_ds)
 binary_predictions = tf.round(predictions).numpy().flatten()
 print(classification_report(y_test, binary_predictions))
-
 # %%
