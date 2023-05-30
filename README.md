@@ -25,5 +25,8 @@ https://www.youtube.com/playlist?list=PLV8yxwGOxvvovp-j6ztxhF3QcKXT6vORU
 **Classification on imbalanced data**
  https://www.tensorflow.org/tutorials/structured_data/imbalanced_data
 
+**Undersampling imbalanced dataset using imblearn**
+https://www.kaggle.com/code/residentmario/undersampling-and-oversampling-imbalanced-data 
+
  **Heart Disease Diagnostic Model**
  https://towardsdatascience.com/heart-disease-prediction-in-tensorflow-2-tensorflow-for-hackers-part-ii-378eef0400ee 

@@ -7,7 +7,7 @@ from sklearn.metrics import classification_report
 # %%
 heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/heart-attributes-model/data/heart.csv'
 dataframe = pd.read_csv(heart_csv_path)
-train, val, test = np.split(dataframe.sample(frac=1), [int(0.6*len(dataframe)), int(0.9*len(dataframe))])
+train, val, test = np.split(dataframe.sample(frac=1), [int(0.5*len(dataframe)), int(0.9*len(dataframe))])
 # train, test = train_test_split(dataframe, test_size=0.2, random_state=42)
 y_train = train.pop('target')
 X_train = train
@@ -38,7 +38,7 @@ model.compile(optimizer="adam",
               metrics=["accuracy"])
 #%%
 model.fit(X_train_NORM, y_train, 
-          epochs=70,
+          epochs=300,
           batch_size=32,
           validation_data=(X_val_NORM, y_val))
 #%% 
