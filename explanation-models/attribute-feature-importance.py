@@ -61,13 +61,32 @@ print(y_test.iloc[2])
 # %%
 shap_values = explainer.shap_values(X_test_NORM[3,:],nsamples='auto')
 shap.force_plot(explainer.expected_value, shap_values[0], X_test_NORM[3,:])
-
+#%%
+shap_values = explainer.shap_values(X_test_NORM[:100,:], nsamples='auto')
+#%%
+print(shap_values)
+print(type(shap_values))
+print(len(shap_values))
+#%%
+shap.force_plot(explainer.expected_value, shap_values[0], X_test_NORM[:100,:])
 # %%
+shap.summary_plot(shap_values, X_test_NORM, plot_type="bar")
+i=0
+for label in dataframe.columns:
+    if label != 'target':
+        print("Feature ", i,"=",label)
+        i+=1
+
+#%%
+shap.summary_plot(shap_values, X_test_NORM, plot_type='violin')
+
+#%%
 i=0
 for label in dataframe.columns:
     if label != 'target':
         print(label,";",shap_values[0][i])
         i+=1
+
 print(X_test.iloc[3,:])
 print(y_test.iloc[3])
 #%%
