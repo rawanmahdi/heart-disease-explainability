@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report 
 from imblearn.under_sampling import RandomUnderSampler
 #%%
@@ -49,12 +48,6 @@ X_train_resampled, y_train_resampled = rus.fit_resample(X_train,y_train)
 neg0, pos0 = np.bincount(y_train_resampled)
 print("No.negative samples after undersampling",neg0)
 print("No.positive samples after undersampling",pos0)
-
-X_train_resampled.to_pickle('C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/data/X_train_resampled.pkl')
-y_train_resampled.to_pickle('C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/data/y_train_resampled.pkl')
-X_test.to_pickle('C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/data/X_test.pkl')
-y_test.to_pickle('C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/data/X_train_resampled.pkl')
-
 #%%
 def df_to_dataset(features, labels, batch_size=512):
     tf_dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels)).cache()

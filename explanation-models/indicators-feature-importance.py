@@ -4,11 +4,38 @@ from tensorflow import keras
 import shap
 import numpy as np
 import pandas as pd
+from imblearn.under_sampling import RandomUnderSampler
+#%%
+heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/data/life-heart.csv'
+dataframe = pd.read_csv(heart_csv_path)
+dataframe['target'] = np.where(dataframe['heartDisease']=='Yes', 1, 0)
+dataframe = dataframe.drop(columns=['heartDisease'])
+RANDOM_SEED = 42
+np.random.seed(RANDOM_SEED)
+df = dataframe.copy()
+# designate for fitting rus
+y = df.pop('target')
+X = df
+train, val, test = np.split(dataframe.sample(frac=1), [int(0.6*len(dataframe)), int(0.9*len(dataframe))])
+y_train = train.pop('target')
+X_train = train
+y_test = test.pop('target')
+X_test = test
+
+# resample via undersampling majority class - this is favoured over oversampling as the dataset is very large
+rus = RandomUnderSampler(random_state=0)
+rus.fit(X,y)
+# only resample training dataset
+X_train_resampled, y_train_resampled = rus.fit_resample(X_train,y_train)
+neg0, pos0 = np.bincount(y_train_resampled)
+print("No.negative samples after undersampling",neg0)
+print("No.positive samples after undersampling",pos0)
+
 #%%
 model = keras.models.load_model("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-model")
 #%%
-X_train = pd.read_pickle("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/data/X_train_resampled.pkl")
-X_test = pd.read_pickle('C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/data/X_test.pkl')
+#%%
+#%%
 training_data = X_train.iloc[:10,:]
 
 #%%
@@ -51,3 +78,4 @@ shap.force_plot(explainer.expected_value, shap_values[0], X_test[:20])
 # %%
 # bar plot for multiple inputs
 shap.summary_plot(shap_values, X_test, plot_type="bar")
+# %%
