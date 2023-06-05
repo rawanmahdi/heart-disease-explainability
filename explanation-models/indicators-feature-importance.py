@@ -34,8 +34,6 @@ print("No.positive samples after undersampling",pos0)
 #%%
 model = keras.models.load_model("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-model")
 #%%
-#%%
-#%%
 training_data = X_train.iloc[:10,:]
 
 #%%
@@ -72,8 +70,9 @@ shap.force_plot(explainer.expected_value, shap_values[0], X_test.iloc[1,:])
 
 #%%
 # get for multiple input
-shap_values = explainer.shap_values(X_test.iloc[:20,:])
-shap.force_plot(explainer.expected_value, shap_values[0], X_test[:20])
+shap_values = explainer.shap_values(X_test.iloc[:200,:])
+#%%
+shap.force_plot(explainer.expected_value, shap_values[0], X_test.iloc[:200])
 
 # %%
 # bar plot for multiple inputs
