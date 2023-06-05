@@ -9,7 +9,7 @@ from imblearn.under_sampling import RandomUnderSampler
 heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/data/life-heart.csv'
 dataframe = pd.read_csv(heart_csv_path)
 dataframe['target'] = np.where(dataframe['heartDisease']=='Yes', 1, 0)
-dataframe = dataframe.drop(columns=['heartDisease'])
+dataframe = dataframe.drop(columns=['heartDisease', 'alcoholDrinking'])
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 df = dataframe.copy()
@@ -63,15 +63,16 @@ def f(X):
 #%%
 explainer = shap.KernelExplainer(f, data=training_data)
 #%%
-shap.initjs()
 # get single input shap feature plot
 shap_values = explainer.shap_values(X_test.iloc[1,:])
+shap.initjs()
 shap.force_plot(explainer.expected_value, shap_values[0], X_test.iloc[1,:])
-
 #%%
 # get for multiple input
-shap_values = explainer.shap_values(X_test.iloc[:200,:])
+shap_values = explainer.shap_values(X_test.iloc[:200,:]);
+print("done finding shap values")
 #%%
+shap.initjs()
 shap.force_plot(explainer.expected_value, shap_values[0], X_test.iloc[:200])
 
 # %%
