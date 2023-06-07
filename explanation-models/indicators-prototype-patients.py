@@ -54,8 +54,9 @@ z_test = np.hstack((X_train_resampled,p_test))
 z_test_pos = z_test[z_test[:,-1]==1,:]
 print(z_test_pos.shape)
 #%%
-sample_id = 9
-sample = X_test.iloc[4,:]
+sample_id = 114
+sample = X_test.iloc[sample_id,:]
+print(y_test.iloc[sample_id])
 print(type(sample))
 print(sample.shape)
 #%%
