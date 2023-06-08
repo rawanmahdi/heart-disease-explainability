@@ -9,13 +9,14 @@ import dice_ml
 heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/heart-attributes-model/data/heart.csv'
 dataframe = pd.read_csv(heart_csv_path)
 train, test = train_test_split(dataframe, test_size=0.2, random_state=42)
+train_dice = train.copy()
 y_train = train.pop('target')
 X_train = train
 y_test = test.pop('target')
 X_test = test
 #%%
 # build dice data object
-dice_data = dice_ml.Data(dataframe=train, 
+dice_data = dice_ml.Data(dataframe=train_dice, 
                          continuous_features=['age','trestbps','chol','thalach','oldpeak','ca'],
                          outcome_name='target')
 # %%
