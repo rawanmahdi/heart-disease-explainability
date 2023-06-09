@@ -100,3 +100,11 @@ for label in dataframe.columns:
         i+=1
 print(X_test.iloc[5,:])
 print(y_test.iloc[5])
+#%%
+shap_values = explainer.shap_values(X_test.iloc[:200,:]);
+print("done finding shap values")
+#%%
+shap.initjs()
+shap.force_plot(explainer.expected_value, shap_values[0], X_test.iloc[:200])
+
+# %%
