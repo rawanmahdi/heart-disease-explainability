@@ -12,9 +12,22 @@ dataframe = pd.read_csv(heart_csv_path)
 print(dataframe.describe())
 print(dataframe.shape)
 dataframe['target'] = np.where(dataframe['heartDisease']=='Yes', 1, 0)
-dataframe = dataframe.drop(columns=['heartDisease','alcoholDrinking'])
+dataframe = dataframe.drop(columns=['heartDisease'])
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
+#%%
+d = np.where(dataframe['diabetic']=='Yes',1,0)
+s = np.where(dataframe['smoking']=='Yes',1,0)
+a =  np.where(dataframe['physicalActivity']=='No',1,0)
+dataframe['BDSA'] = dataframe['bmi']*(d+s+a)
+print('bmi:')
+print(dataframe['bmi'].iloc[0:20])
+print('bdsa')
+print(dataframe['BDSA'].iloc[0:20])
+#%%
+dataframe = dataframe.drop(columns=['alcoholDrinking','kidneyDisease', 'skinCancer', 'sleepHours'])
+
+#%%
 neg, pos = np.bincount(dataframe['target'])
 #%%
 # print(dataframe['bmi'])
@@ -52,7 +65,7 @@ neg0, pos0 = np.bincount(y_train_resampled)
 print("No.negative samples after undersampling",neg0)
 print("No.positive samples after undersampling",pos0)
 #%%
-def df_to_dataset(features, labels, batch_size=512):
+def df_to_dataset(features, labels, batch_size=32):
     tf_dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels)).cache()
     shuffled_tf_dataset = tf_dataset.shuffle(buffer_size=len(df)) # shuffling values 
     return shuffled_tf_dataset.batch(batch_size).prefetch(2)# returning 32 samples per batch
@@ -91,7 +104,7 @@ inputs = []
 encoded_features =[]
 
 # numerical
-for header in ["bmi", "physicalHealth", "mentalHealth", 'sleepHours' ]:
+for header in ["bmi", "physicalHealth", "mentalHealth", 'BDSA']:
     num_col = tf.keras.Input(shape=(1,), name=header)
     # keras inputs array
     inputs.append(num_col)
@@ -104,7 +117,7 @@ for header in ["bmi", "physicalHealth", "mentalHealth", 'sleepHours' ]:
 # categorical
 for header in ["smoking","stroke","diffWalk",
                 "sex", "ageGroup", "diabetic", "physicalActivity", 
-                "overallHealth", "asthma", "kidneyDisease", "skinCancer"]:
+                "overallHealth", "asthma" ]:
     
     # declare header as a keras Input
     cat_col = tf.keras.Input(shape=(1,), name=header, dtype='string')
@@ -121,19 +134,22 @@ for header in ["smoking","stroke","diffWalk",
     encoded_features.append(encoded_cat_col)
 # %%
 # KERAS FUNCTIONAL API - MODEL BUILD   
+callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
 # merge list feature inputs into one vector
 features = tf.keras.layers.concatenate(encoded_features)
-x = tf.keras.layers.Dense(units=64, activation="relu")(features)
-x = tf.keras.layers.Dropout(rate=0.4)(x)
-x = tf.keras.layers.Dense(units=128, activation='relu')(x)
-x = tf.keras.layers.Dropout(rate=0.4)(x)
-x = tf.keras.layers.Dense(units=128, activation="relu")(x)
-x = tf.keras.layers.Dropout(rate=0.4)(x)
-x = tf.keras.layers.Dense(units=64, activation='relu')(x)
+x = tf.keras.layers.Dense(units=100, activation="relu")(features)
+x = tf.keras.layers.Dropout(rate=0.3)(x)
+x = tf.keras.layers.Dense(units=100, activation='relu')(x)
+x = tf.keras.layers.Dropout(rate=0.6)(x)
+x = tf.keras.layers.Dense(units=120, activation="relu")(x)
+x = tf.keras.layers.Dropout(rate=0.3)(x)
+x = tf.keras.layers.Dense(units=90, activation="relu")(x)
+x = tf.keras.layers.Dropout(rate=0.3)(x)
+x = tf.keras.layers.Dense(units=50, activation='relu')(x)
 output = tf.keras.layers.Dense(units=1, activation='sigmoid')(x)
 model = tf.keras.Model(inputs, output)
 #%%
-model.compile(optimizer='adam', 
+model.compile(optimizer='adadelta', 
               loss='binary_crossentropy', 
               metrics = ['accuracy'])
 
@@ -142,14 +158,17 @@ result = model.fit(
                     train_resampled_ds,
                     validation_data=val_ds, 
                     # validation_data=(X_val, y_val),
-                    epochs=100,
+                    epochs=20,
                     verbose=1)
 
 # %%
 plt.plot(result.history['loss'], label='loss')
 plt.plot(result.history['val_loss'], label='val_loss')
 plt.legend()
-
+#%%
+plt.plot(result.history['accuracy'], label='accuracy')
+plt.plot(result.history['val_accuracy'], label='val_accuracy')
+plt.legend()
 #%%
 predictions = model.predict(test_ds)
 binary_predictions = tf.round(predictions).numpy().flatten()
