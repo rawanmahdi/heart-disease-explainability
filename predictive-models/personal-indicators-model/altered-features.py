@@ -13,6 +13,8 @@ print(dataframe.describe())
 print(dataframe.shape)
 dataframe['target'] = np.where(dataframe['heartDisease']=='Yes', 1, 0)
 dataframe = dataframe.drop(columns=['heartDisease'])
+dataframe = dataframe.iloc[1:25000, :]
+
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 #%%
@@ -64,6 +66,9 @@ X_train_resampled, y_train_resampled = rus.fit_resample(X_train,y_train)
 neg0, pos0 = np.bincount(y_train_resampled)
 print("No.negative samples after undersampling",neg0)
 print("No.positive samples after undersampling",pos0)
+X_val_res, y_val_res = rus.fit_resample(X_val, y_val)
+# neg0, pos0 = np.bincount(y_val_res)
+# print('pos',pos0, 'neg',neg0)
 #%%
 def df_to_dataset(features, labels, batch_size=32):
     tf_dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels)).cache()
@@ -95,7 +100,7 @@ def get_category_encoding_layer(feature_name, dataset, dtype, max_tokens=None, b
     return lambda feature: encoder(index(feature))
 #%%
 train_resampled_ds= df_to_dataset(X_train_resampled, y_train_resampled)
-val_ds = df_to_dataset(X_val, y_val)
+val_ds = df_to_dataset(X_val_res, y_val_res)
 test_ds= df_to_dataset(X_test, y_test)
 
 
@@ -134,31 +139,33 @@ for header in ["smoking","stroke","diffWalk",
     encoded_features.append(encoded_cat_col)
 # %%
 # KERAS FUNCTIONAL API - MODEL BUILD   
+from keras import regularizers
 callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-# merge list feature inputs into one vector
 features = tf.keras.layers.concatenate(encoded_features)
-x = tf.keras.layers.Dense(units=100, activation="relu")(features)
-x = tf.keras.layers.Dropout(rate=0.3)(x)
-x = tf.keras.layers.Dense(units=100, activation='relu')(x)
-x = tf.keras.layers.Dropout(rate=0.6)(x)
-x = tf.keras.layers.Dense(units=120, activation="relu")(x)
-x = tf.keras.layers.Dropout(rate=0.3)(x)
-x = tf.keras.layers.Dense(units=90, activation="relu")(x)
-x = tf.keras.layers.Dropout(rate=0.3)(x)
-x = tf.keras.layers.Dense(units=50, activation='relu')(x)
+x = tf.keras.layers.Dense(
+    units=64,
+    kernel_regularizer=regularizers.L1L2(l1=1e-5, l2=1e-4),
+    bias_regularizer=regularizers.L2(1e-4),
+    activity_regularizer=regularizers.L2(1e-5)
+)(features)
+x = tf.keras.layers.Dense(units=90, activation='relu')(x)
+x = tf.keras.layers.Dropout(rate=0.67)(x)
+x = tf.keras.layers.Dense(units=128, activation="relu")(x)
+x = tf.keras.layers.Dropout(rate=0.7)(x)
+x = tf.keras.layers.Dense(units=64, activation='relu')(x)
 output = tf.keras.layers.Dense(units=1, activation='sigmoid')(x)
 model = tf.keras.Model(inputs, output)
 #%%
-model.compile(optimizer='adadelta', 
+model.compile(optimizer='adam', 
               loss='binary_crossentropy', 
               metrics = ['accuracy'])
-
+#%%
 result = model.fit(
     # X_train_resampled,y_train_resampled,
                     train_resampled_ds,
                     validation_data=val_ds, 
                     # validation_data=(X_val, y_val),
-                    epochs=20,
+                    epochs=50,
                     verbose=1)
 
 # %%
@@ -170,9 +177,9 @@ plt.plot(result.history['accuracy'], label='accuracy')
 plt.plot(result.history['val_accuracy'], label='val_accuracy')
 plt.legend()
 #%%
-predictions = model.predict(test_ds)
+predictions = model.predict(val_ds)
 binary_predictions = tf.round(predictions).numpy().flatten()
-print(classification_report(y_test, binary_predictions))
+print(classification_report(y_val_res, binary_predictions))
 # %%
 model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-altred-model")
 
