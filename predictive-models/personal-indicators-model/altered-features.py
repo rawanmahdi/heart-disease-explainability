@@ -13,15 +13,24 @@ print(dataframe.describe())
 print(dataframe.shape)
 dataframe['target'] = np.where(dataframe['heartDisease']=='Yes', 1, 0)
 dataframe = dataframe.drop(columns=['heartDisease'])
+dataframe.drop_duplicates(inplace=True)
+print(dataframe.shape)
 dataframe = dataframe.iloc[1:25000, :]
 
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 #%%
-d = np.where(dataframe['diabetic']=='Yes',1,0)
-s = np.where(dataframe['smoking']=='Yes',1,0)
+# walk_disease = np.where((dataframe['diffWalk']=='Yes' & dataframe['target']==1),1,0)
+# neg, pos = np.bincount(walk_disease)
+# print('Negative: ',neg)
+# print('Positive:',pos)
+#%%
+d = np.where(dataframe['diabetic']=='Yes',1.5,0)
+s = np.where(dataframe['smoking']=='Yes',2,0)
 a =  np.where(dataframe['physicalActivity']=='No',1,0)
-dataframe['BDSA'] = dataframe['bmi']*(d+s+a)
+st = np.where(dataframe['stroke']=='Yes',3,0)
+
+dataframe['BDSA'] = (dataframe['bmi']/2)*(d+s+a+st)
 print('bmi:')
 print(dataframe['bmi'].iloc[0:20])
 print('bdsa')
@@ -165,7 +174,7 @@ result = model.fit(
                     train_resampled_ds,
                     validation_data=val_ds, 
                     # validation_data=(X_val, y_val),
-                    epochs=50,
+                    epochs=100,
                     verbose=1)
 
 # %%
@@ -177,9 +186,9 @@ plt.plot(result.history['accuracy'], label='accuracy')
 plt.plot(result.history['val_accuracy'], label='val_accuracy')
 plt.legend()
 #%%
-predictions = model.predict(val_ds)
+predictions = model.predict(test_ds)
 binary_predictions = tf.round(predictions).numpy().flatten()
-print(classification_report(y_val_res, binary_predictions))
+print(classification_report(y_test, binary_predictions))
 # %%
 model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-altred-model")
 

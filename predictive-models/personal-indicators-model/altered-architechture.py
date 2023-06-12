@@ -15,7 +15,6 @@ print(dataframe.describe())
 print(dataframe.shape)
 dataframe['target'] = np.where(dataframe['heartDisease']=='Yes', 1, 0)
 dataframe = dataframe.drop(columns=['heartDisease'])
-dataframe = dataframe.iloc[1:25000, :]
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 neg, pos = np.bincount(dataframe['target'])
@@ -50,7 +49,7 @@ print("No.positive samples after undersampling",pos0)
 X_val_res, y_val_res = rus.fit_resample(X_val, y_val)
 
 #%%
-def df_to_dataset(features, labels, batch_size=32):
+def df_to_dataset(features, labels, batch_size=512):
     tf_dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels)).cache()
     shuffled_tf_dataset = tf_dataset.shuffle(buffer_size=len(df)) # shuffling values 
     return shuffled_tf_dataset.batch(batch_size).prefetch(2)# returning 32 samples per batch
@@ -129,9 +128,9 @@ x = layers.Dense(
     activity_regularizer=regularizers.L2(1e-5)
 )(features)
 x = layers.Dense(units=90, activation='relu')(x)
-x = layers.Dropout(rate=0.67)(x)
+x = layers.Dropout(rate=0)(x)
 x = layers.Dense(units=128, activation="relu")(x)
-x = layers.Dropout(rate=0.7)(x)
+x = layers.Dropout(rate=0)(x)
 x = layers.Dense(units=64, activation='relu')(x)
 output = layers.Dense(units=1, activation='sigmoid')(x)
 model = tf.keras.Model(inputs, output)
@@ -161,4 +160,6 @@ predictions = model.predict(test_ds)
 binary_predictions = tf.round(predictions).numpy().flatten()
 print(classification_report(y_test, binary_predictions))
 # %%
-model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-model")
+model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-dropout-model")
+
+# %%
