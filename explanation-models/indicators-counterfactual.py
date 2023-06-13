@@ -77,7 +77,8 @@ dice_data = dice_ml.Data(features={'bmi': [12,94.8],
                         'asthma': ['Yes','No'],  
                         'kidneyDisease': ['Yes','No'], 
                         'skinCancer': ['Yes','No']},
-                        outcome_name='target')
+                        outcome_name='target',
+                        continuous_features=['bmi','physicalHealth','mentalHealth','sleepHours'])
 #%%
 # build dice model object
 model = keras.models.load_model("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-model")
