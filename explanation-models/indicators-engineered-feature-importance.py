@@ -16,6 +16,13 @@ dataframe = dataframe.drop(columns=['heartDisease'])
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 #%%
+diff = list(np.where(dataframe['diffWalk']=='Yes'))
+nodiff = np.where(dataframe['diffWalk'] == 'No')
+heart = list(np.where(dataframe['target'] == 1))
+#%%
+heart_diff = [i for i in diff if i in heart]
+
+#%%
 d = np.where(dataframe['diabetic']=='Yes',1,0)
 s = np.where(dataframe['smoking']=='Yes',1,0)
 a =  np.where(dataframe['physicalActivity']=='No',1,0)
