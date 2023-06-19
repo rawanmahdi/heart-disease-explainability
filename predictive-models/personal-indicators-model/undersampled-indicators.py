@@ -11,6 +11,10 @@ from keras import regularizers
 #%%
 heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/data/life-heart.csv'
 dataframe = pd.read_csv(heart_csv_path)
+#%%
+corr_mat = dataframe.corr()
+corr_mat
+#%%
 print(dataframe.describe())
 print(dataframe.shape)
 dataframe['target'] = np.where(dataframe['heartDisease']=='Yes', 1, 0)
