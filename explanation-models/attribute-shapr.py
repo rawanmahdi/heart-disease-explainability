@@ -117,3 +117,11 @@ plt.setp(ax.get_xticklabels(), fontsize=10, rotation='vertical')
 ax.bar(features,means)
 plt.show()
 # %%
+sample = df_shapley.iloc[1]
+# %%
+print(sample)
+sample_p = pred_explain[1]
+print(sample_p)
+# %%
+print(test.iloc[1])
+# %%
