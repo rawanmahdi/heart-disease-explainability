@@ -23,6 +23,7 @@ This individual was predicted to have a much higher risk of 61%, and according t
 
 Although these results are exciting, in that they seemingly clinically validate the behaviour of our model, a major drawback exists in this specific implementation of shapley game theory for explainability. Kernel SHAP makes the major assumption that our features are independant, and in the process of forming feature coalitions, it passes in potentially unrealistic feature value combinations, making it unreliable in the context of clinical validation, and even model debugging. 
 
+### Counterfactual Explanations ###
 
 ## Privacy Preservation aproach ##
 An important consideration when deploying health-based models is how we can maintain high preformance while perserving the patient's privacy. Adopting federated learning and on device training/explanations can help address security and privacy concerns. 
