@@ -21,8 +21,12 @@ The model predicted that this individual has a 10% risk, attributing his younger
 ![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/shap-plots/indicators-plots/200-sample-similarity-older-smoking-female.png?raw=true)
 This individual was predicted to have a much higher risk of 61%, and according to the shapley values, her age and the fact that she smokes, and has diabetes increased her risk the most out of all other factors, whereas her sex decreased it. 
 
-Although these results are exciting, in that they seemingly clinically validate the behaviour of our model, a major drawback exists in this specific implementation of shapley game theory for explainability. Kernel SHAP makes the major assumption that our features are independant, and in the process of forming feature coalitions, it passes in potentially unrealistic feature value combinations, making it unreliable in the context of clinical validation, and even model debugging. 
+Although these results are exciting, in that they seemingly clinically validate the behaviour of our model, a major drawback exists in this specific implementation of shapley game theory for explainability. Kernel SHAP makes the major assumption that our features are independant, and in the process of forming feature coalitions, it passes in potentially unrealistic feature value combinations, making it unreliable in the context of clinical validation, and even model debugging.
 
+### SHAPR - SHAP for dependant features ###
+In an attempt to get more reliable results, I found an implementation of shapley values that don't make the assumption of independance between features. I preformed the same explanations as above using shapr, developed by Aas et al. Below is the corresponding mean absolute feature importance. 
+
+![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/img/shapr-plots/100-samples-bar.png?raw=true)
 ### Counterfactual Explanations ###
 
 ## Privacy Preservation aproach ##
