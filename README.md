@@ -10,8 +10,16 @@ One of the most popular approaches for model explainability is SHAP, developed b
 
 ![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/shap-formula.png?raw=true)
 
-Applying Kernel SHAP to my heart disease classifier
+Applying Kernel SHAP to my heart disease classifier, we can see some of the classifier's behaviour depicted through the trends in it's explanations. For starters, mean feature importances across 200 samples from the testing dataset are given in the bar graph below. 
 
+![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/200-sample-bar.png?raw=true)
+
+Age being the most important factor that influences an individual's risk of heart disease gives us the notion that the model is correctly interpreting the age feature. Another interesting graph we can obtain through the shap library depicts the effect of a feature's values. The first plot depicts a younger male,whose relativley healthy. 
+
+![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/200-sample-similarity-younger-healthy-male.png?raw=true)
+The model predicted that this individual has a XX% risk, attributing X and Y to lowering his risk, and Z to raising it. We can compare this to an older male who also happens to smoke:
+![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/200-sample-similarity-older-smoking-male.png?raw=true)
+This individual was predicted to have a much higher risk of YY%, and according to the shapley values, his sex and the fact that he smokes increased his risk the most out of all other factors. 
 ## Privacy Preservation aproach ##
 An important consideration when deploying health-based models is how we can maintain high preformance while perserving the patient's privacy. Adopting federated learning and on device training/explanations can help address security and privacy concerns. 
 ![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/serving-vs-local.png?raw=true)
