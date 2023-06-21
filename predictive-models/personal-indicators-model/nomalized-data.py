@@ -9,23 +9,18 @@ from sklearn.preprocessing import StandardScaler
 from imblearn.under_sampling import RandomUnderSampler
 from keras import regularizers
 #%%
-heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/data/life-heart.csv'
-dataframe = pd.read_csv(heart_csv_path)
-print(dataframe.describe())
-print(dataframe.shape)
-dataframe['target'] = np.where(dataframe['heartDisease']=='Yes', 1, 0)
-dataframe = dataframe.drop(columns=['heartDisease'])
-dataframe = dataframe.iloc[1:25000, :]
-df = dataframe.copy()
-df.head()
+def load_df(path):
+    df = pd.read_csv(path)
+    df['target'] = np.where(df['heartDisease']=='Yes', 1, 0)
+    df = df.drop(columns=['heartDisease', 'alcoholDrinking', 'skinCancer', 'kidneyDisease'])
+    return df
+df = load_df(r"C:\Users\Rawan Alamily\Downloads\McSCert Co-op\tabnet-heart\data\life-heart.csv")
 #%%
-#FEATURE ENCODING
-encode = lambda x: np.int64(1) if x=='Yes' else np.int64(0)
-male = lambda x: np.int64(1) if x=='Male' else np.int64(0)
-typeconv = lambda x: np.int64(x)
+yn = lambda x: 1 if x=='Yes' else 0
+male = lambda x: 1 if x=='Male' else 0
 def age(x):
-    y = int(str(x)[0:2])
-    return np.float64(y)
+    y = int(x[0:2])
+    return y
 def diabetes(x):
     if x=='Yes':
         y=1
@@ -33,7 +28,7 @@ def diabetes(x):
         y=0
     else:
         y=2
-    return np.float64(y)
+    return y
 def genHealth(x):
     if x=='Very good':
         y=0
@@ -45,81 +40,72 @@ def genHealth(x):
         y=3
     else:
         y=4
-    return np.float64(y)
+    return y
 #%%
-for i in range(df.iloc[:, 1].shape[0]):
-    df.iloc[i,1] = encode(df.iloc[i,1])
-for i in range(df.iloc[:, 2].shape[0]):
-    df.iloc[i,2] = encode(df.iloc[i,2])
-for i in range(df.iloc[:, 3].shape[0]):
-    df.iloc[i,3] = encode(df.iloc[i,3])
-for i in range(df.iloc[:, 4].shape[0]):
-    df.iloc[i,4] = np.float64(df.iloc[i,4])
-for i in range(df.iloc[:, 5].shape[0]):
-    df.iloc[i,5] = np.float64(df.iloc[i,5])
-for i in range(df.iloc[:, 6].shape[0]):
-    df.iloc[i,6] = encode(df.iloc[i,6]) 
-for i in range(df.iloc[:, 7].shape[0]):
-    df.iloc[i,7] = male(df.iloc[i,7])
-for i in range(df.iloc[:, 8].shape[0]):
-    df.iloc[i,8] = age(df.iloc[i,8])
-for i in range(df.iloc[:, 9].shape[0]):
-    df.iloc[i,9] = diabetes(df.iloc[i,9])
-for i in range(df.iloc[:, 10].shape[0]):
-    df.iloc[i,10] = encode(df.iloc[i,10])
-for i in range(df.iloc[:, 11].shape[0]):
-    df.iloc[i,11] = genHealth(df.iloc[i,11])
-for i in range(df.iloc[:, 12].shape[0]):
-    df.iloc[i,12] = np.float64(df.iloc[i,12])
-for i in range(df.iloc[:, 13].shape[0]):
-    df.iloc[i,13] = encode(df.iloc[i,13]) 
-for i in range(df.iloc[:, 14].shape[0]):
-    df.iloc[i,14] = encode(df.iloc[i,14])  
-for i in range(df.iloc[:, 15].shape[0]):
-    df.iloc[i,15] = encode(df.iloc[i,15]) 
+
 df.head()
 #%%
-def split_process(df):
-    # SPLIT 
-    train, val, test = np.split(df.sample(frac=1), [int(0.6*len(dataframe)), int(0.9*len(dataframe))])
+def encode_strings(df):
+    for i in range(df.iloc[:,:].shape[0]): 
+        for j in range(1,3):
+            df.iloc[i,j] = yn(df.iloc[i,j])
+        df.iloc[i,5] = yn(df.iloc[i,5])
+        df.iloc[i,6] = male(df.iloc[i,6])
+        df.iloc[i,7] = age(df.iloc[i,7])
+        df.iloc[i,8] = diabetes(df.iloc[i,8])
+        df.iloc[i,9] = yn(df.iloc[i,9])
+        df.iloc[i,10] = genHealth(df.iloc[i,10])
+        df.iloc[i,12] = yn(df.iloc[i,12])
+
+    df['smoking'] = df['smoking'].astype(str).astype(int)
+    df['stroke'] = df['stroke'].astype(str).astype(int)
+    df['diffWalk'] = df['diffWalk'].astype(str).astype(int)
+    df['sex'] = df['sex'].astype(str).astype(int)
+    df['ageGroup'] = df['ageGroup'].astype(str).astype(int)
+    df['diabetic'] = df['diabetic'].astype(str).astype(int)
+    df['physicalActivity'] = df['physicalActivity'].astype(str).astype(int)
+    df['overallHealth'] = df['overallHealth'].astype(str).astype(int)
+    df['asthma'] = df['asthma'].astype(str).astype(int)
+    return df 
+#%%
+df = df.iloc[:25000,:]
+df = encode_strings(df)    
+#%%
+df = df.copy()
+
+#%%
+def split_sample(df):
+    dff = df.copy()
+    y = dff.pop('target')
+    X = dff
+
+    train, val, test = np.split(df.sample(frac=1), [int(0.6*len(df)), int(0.9*len(df))])
     y_train = train.pop('target')
     X_train = train
     y_val = val.pop('target')
     X_val = val
     y_test = test.pop('target')
     X_test = test
-    # RESAMPLE 
+
     rus = RandomUnderSampler(random_state=0)
-    y = df.pop('target')
-    X = df
     rus.fit(X,y)
     X_train_resampled, y_train_resampled = rus.fit_resample(X_train,y_train)
-    neg0, pos0 = np.bincount(y_train_resampled)
-    X_val_res, y_val_res = rus.fit_resample(X_val, y_val)
-    print("No.negative samples after undersampling",neg0)
-    print("No.positive samples after undersampling",pos0)
-    # SCALE
-    # scaler = StandardScaler().fit(X_train_resampled)
-    # X_train_NORM = scaler.transform(X_train_resampled)
-    # X_val_NORM = scaler.transform(X_val_res)
-    # X_test_NORM = scaler.transform(X_test)
+    X_val_resampled, y_val_resampled= rus.fit_resample(X_val, y_val)
 
-    # return X_train_NORM, y_train_resampled, X_test_NORM, y_test, X_val_NORM, y_val_res
-    # return X_train_resampled, y_train_resampled, X_test, y_test, X_val_res, y_val_res
-    return X_train, y_train, X_test, y_test, X_val, y_val
+    return X_train_resampled, y_train_resampled, X_val_resampled, y_val_resampled, X_test, y_test
+
 #%%
-X_train, y_train, X_test, y_test, X_val, y_val = split_process(df)
-#%%
-type(X_train)
-#%%
-for thing in X_train.iloc[1,:]:
-    print(type(thing))
+# scaler = StandardScaler().fit(X_train_resampled)
+# X_train = scaler.transform(X_train_resampled)
+# X_val = scaler.transform(X_val_resampled)
+# X_test = scaler.transform(X_test)
 #%%
 def df_to_dataset(features, labels, batch_size=32):
     tf_dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels)).cache()
     shuffled_tf_dataset = tf_dataset.shuffle(buffer_size=len(df)) # shuffling values 
     return shuffled_tf_dataset.batch(batch_size).prefetch(2)# returning 32 samples per batch
 #%%
+X_train, y_train, X_val, y_val, X_test, y_test = split_sample(df)
 train_ds= df_to_dataset(X_train, y_train)
 val_ds = df_to_dataset(X_val, y_val)
 test_ds= df_to_dataset(X_test, y_test)
@@ -163,19 +149,19 @@ for header in ["bmi", "physicalHealth", "mentalHealth", 'sleepHours' ]:
     encoded_features.append(encoded_num_col)
 
 # categorical
-for header in ["smoking","alcoholDrinking","stroke","diffWalk",
+for header in ["smoking","stroke","diffWalk",
                 "sex", "ageGroup", "diabetic", "physicalActivity", 
-                "overallHealth", "asthma", "kidneyDisease", "skinCancer"]:
+                "overallHealth", "asthma"]:
     
     # declare header as a keras Input
-    cat_col = tf.keras.Input(shape=(1,), name=header, dtype='int')
+    cat_col = tf.keras.Input(shape=(1,), name=header)
     # keras inputs array
     inputs.append(cat_col)
 
     # get preprocessing layer 
     cat_layer = get_category_encoding_layer(feature_name=header,
                                             dataset=train_ds, 
-                                            dtype='string', 
+                                            dtype='int', 
                                             max_tokens=None)
     encoded_cat_col = cat_layer(cat_col)
     # encoded feature
@@ -225,3 +211,5 @@ binary_predictions = tf.round(predictions).numpy().flatten()
 print(classification_report(y_test, binary_predictions))
 # %%
 model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/normalized-model")
+
+# %%
