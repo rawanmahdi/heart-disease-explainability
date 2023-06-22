@@ -26,7 +26,7 @@ Although these results are exciting, in that they seemingly clinically validate 
 ### SHAPR - SHAP for dependant features ###
 In an attempt to get more reliable results, I found an implementation of shapley values that don't make the assumption of independance between features. I preformed the same explanations as above using shapr, developed by Aas et al. Below is the corresponding mean absolute feature importance. 
 
-![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/img/shapr-plots/100-samples-bar.png?raw=true)
+![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/shapr-plots/100-samples-bar.png?raw=true)
 ### Counterfactual Explanations ###
 
 ## Privacy Preservation aproach ##
