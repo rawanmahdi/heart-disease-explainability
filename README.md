@@ -10,9 +10,9 @@ One of the most popular approaches for model explainability is SHAP, developed b
 
 ![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/shap-formula.png?raw=true)
 
-Applying Kernel SHAP to my heart disease classifier, we can see some of the classifier's behaviour depicted through the trends in it's explanations. For starters, mean feature importances across 200 samples from the testing dataset are given in the bar graph below. 
+Applying Kernel SHAP to my heart disease classifier, we can see some of the classifier's behaviour depicted through the trends in it's explanations. For starters, mean feature importances across 100 samples from the testing dataset are given in the bar graph below. 
 
-![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/shap-plots/indicators-plots/200-sample-bar.png?raw=true)
+![alt text](https://github.com/rawanmahdi/explainable-ai-heart/blob/main/img/shap-plots/indicators-plots/100-sample-equiv-bar.png?raw=true)
 
 Age being the most important factor that influences an individual's risk of heart disease gives us the notion that the model is correctly interpreting the age feature. Another interesting graph we can obtain through the shap library depicts the effect of a feature's values. The first plot depicts a younger male,whose relativley healthy. 
 
