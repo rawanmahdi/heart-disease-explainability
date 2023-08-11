@@ -146,7 +146,7 @@ result = model.fit(
                     train_resampled_ds,
                     validation_data=val_ds, 
                     # validation_data=(X_val, y_val),
-                    epochs=100,
+                    epochs=10,
                     verbose=1)
 
 # %%
@@ -162,4 +162,6 @@ predictions = model.predict(test_ds)
 binary_predictions = tf.round(predictions).numpy().flatten()
 print(classification_report(y_test, binary_predictions))
 # %%
-model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-model")
+model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-model/original")
+
+# %%

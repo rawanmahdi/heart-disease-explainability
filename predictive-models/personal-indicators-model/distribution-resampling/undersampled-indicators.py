@@ -12,9 +12,6 @@ from keras import regularizers
 heart_csv_path = 'C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/data/life-heart.csv'
 dataframe = pd.read_csv(heart_csv_path)
 #%%
-corr_mat = dataframe.corr()
-corr_mat
-#%%
 print(dataframe.describe())
 print(dataframe.shape)
 dataframe['target'] = np.where(dataframe['heartDisease']=='Yes', 1, 0)
@@ -133,9 +130,9 @@ x = layers.Dense(
     activity_regularizer=regularizers.L2(1e-5)
 )(features)
 x = layers.Dense(units=90, activation='relu')(x)
-x = layers.Dropout(rate=0.67)(x)
+x = layers.Dropout(rate=0.4)(x)
 x = layers.Dense(units=128, activation="relu")(x)
-x = layers.Dropout(rate=0.7)(x)
+x = layers.Dropout(rate=0.4)(x)
 x = layers.Dense(units=64, activation='relu')(x)
 output = layers.Dense(units=1, activation='sigmoid')(x)
 model = tf.keras.Model(inputs, output)
@@ -165,4 +162,4 @@ predictions = model.predict(test_ds)
 binary_predictions = tf.round(predictions).numpy().flatten()
 print(classification_report(y_test, binary_predictions))
 # %%
-model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-model")
+model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-model/undersampled")
