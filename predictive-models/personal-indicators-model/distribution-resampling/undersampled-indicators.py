@@ -19,7 +19,7 @@ print(dataframe.describe())
 print(dataframe.shape)
 dataframe['target'] = np.where(dataframe['heartDisease']=='Yes', 1, 0)
 dataframe = dataframe.drop(columns=['heartDisease'])
-dataframe = dataframe.iloc[1:25000, :]
+# dataframe = dataframe.iloc[1:25000, :]
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 neg, pos = np.bincount(dataframe['target'])
@@ -52,9 +52,7 @@ neg0, pos0 = np.bincount(y_train_resampled)
 print("No.negative samples after undersampling",neg0)
 print("No.positive samples after undersampling",pos0)
 X_val_res, y_val_res = rus.fit_resample(X_val, y_val)
-#%%
-for thing in X_train_resampled.iloc[1,:]:
-    print(type(thing))
+
 #%%
 def df_to_dataset(features, labels, batch_size=32):
     tf_dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels)).cache()
