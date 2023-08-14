@@ -61,9 +61,9 @@ print("No.negative samples after undersampling",neg0)
 print("No.positive samples after undersampling",pos0)
 
 #%%
-model = keras.models.load_model("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-altred-model")
+model = keras.models.load_model("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/heart-disease-explainability/predictive-models/personal-indicators-model/models/features")
 #%%
-training_data = X_train.iloc[:10,:]
+training_data = X_train.iloc[:100,:]
 
 #%%
 def f(X):

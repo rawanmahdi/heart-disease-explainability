@@ -162,4 +162,6 @@ predictions = model.predict(test_ds)
 binary_predictions = tf.round(predictions).numpy().flatten()
 print(classification_report(y_test, binary_predictions))
 # %%
-model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-model/undersampled")
+model.save("resampled")
+
+# %%

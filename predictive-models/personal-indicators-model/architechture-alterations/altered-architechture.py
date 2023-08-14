@@ -128,9 +128,11 @@ x = layers.Dense(
     activity_regularizer=regularizers.L2(1e-5)
 )(features)
 x = layers.Dense(units=90, activation='relu')(x)
-x = layers.Dropout(rate=0)(x)
+x = layers.Dropout(rate=0.4)(x)
 x = layers.Dense(units=128, activation="relu")(x)
-x = layers.Dropout(rate=0)(x)
+x = layers.Dropout(rate=0.4)(x)
+x = layers.Dense(units=100, activation="relu")(x)
+x = layers.Dropout(rate=0.2)(x)
 x = layers.Dense(units=64, activation='relu')(x)
 output = layers.Dense(units=1, activation='sigmoid')(x)
 model = tf.keras.Model(inputs, output)
@@ -160,6 +162,6 @@ predictions = model.predict(test_ds)
 binary_predictions = tf.round(predictions).numpy().flatten()
 print(classification_report(y_test, binary_predictions))
 # %%
-model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-dropout-model")
+model.save("architecture")
 
 # %%

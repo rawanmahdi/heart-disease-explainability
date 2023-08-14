@@ -22,19 +22,19 @@ X_train = train
 y_test = test.pop('target')
 X_test = test
 
-# # resample via undersampling majority class - this is favoured over oversampling as the dataset is very large
-# rus = RandomUnderSampler(random_state=0)
-# rus.fit(X,y)
-# # only resample training dataset
-# X_train_resampled, y_train_resampled = rus.fit_resample(X_train,y_train)
-# neg0, pos0 = np.bincount(y_train_resampled)
-# print("No.negative samples after undersampling",neg0)
-# print("No.positive samples after undersampling",pos0)
+# resample via undersampling majority class - this is favoured over oversampling as the dataset is very large
+rus = RandomUnderSampler(random_state=0)
+rus.fit(X,y)
+# only resample training dataset
+X_train_resampled, y_train_resampled = rus.fit_resample(X_train,y_train)
+neg0, pos0 = np.bincount(y_train_resampled)
+print("No.negative samples after undersampling",neg0)
+print("No.positive samples after undersampling",pos0)
 
 #%%
-model = keras.models.load_model("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-model/original")
+model = keras.models.load_model("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/heart-disease-explainability/predictive-models/personal-indicators-model/models/resampled")
 #%%
-training_data = X_train.iloc[:10,:]
+training_data = X_train.iloc[:100,:]
 
 #%%
 def f(X):

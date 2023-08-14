@@ -15,7 +15,7 @@ dataframe['target'] = np.where(dataframe['heartDisease']=='Yes', 1, 0)
 dataframe = dataframe.drop(columns=['heartDisease'])
 dataframe.drop_duplicates(inplace=True)
 print(dataframe.shape)
-dataframe = dataframe.iloc[1:25000, :]
+# dataframe = dataframe.iloc[1:25000, :]
 
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
@@ -112,7 +112,6 @@ train_resampled_ds= df_to_dataset(X_train_resampled, y_train_resampled)
 val_ds = df_to_dataset(X_val_res, y_val_res)
 test_ds= df_to_dataset(X_test, y_test)
 
-
 #%%
 inputs = []
 encoded_features =[]
@@ -158,9 +157,9 @@ x = tf.keras.layers.Dense(
     activity_regularizer=regularizers.L2(1e-5)
 )(features)
 x = tf.keras.layers.Dense(units=90, activation='relu')(x)
-x = tf.keras.layers.Dropout(rate=0.67)(x)
+x = tf.keras.layers.Dropout(rate=0.4)(x)
 x = tf.keras.layers.Dense(units=128, activation="relu")(x)
-x = tf.keras.layers.Dropout(rate=0.7)(x)
+x = tf.keras.layers.Dropout(rate=0.4)(x)
 x = tf.keras.layers.Dense(units=64, activation='relu')(x)
 output = tf.keras.layers.Dense(units=1, activation='sigmoid')(x)
 model = tf.keras.Model(inputs, output)
@@ -190,6 +189,7 @@ predictions = model.predict(test_ds)
 binary_predictions = tf.round(predictions).numpy().flatten()
 print(classification_report(y_test, binary_predictions))
 # %%
-model.save("C:/Users/Rawan Alamily/Downloads/McSCert Co-op/explainable-ai-heart/predictive-models/personal-indicators-model/saved-altred-model")
+model.save("/models/saved-feature-model")
 
 # %%
+model.save("features")
